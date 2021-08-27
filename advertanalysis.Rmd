@@ -1,0 +1,522 @@
+---
+title: "Advert Analysis"
+output: html_document
+---
+# **Predict whether a user will click an Ad**
+
+## **Introduction**
+
+
+### **Defining the Question**
+Carry out an analysis on whether a user will click an Ad.
+We are to perform Exploratory Data Analysis on the data : Univariate,Bivariate and Multivariate analysis.
+
+
+### **Context**
+A Kenyan entrepreneur has created an online cryptography course and would want to advertise it on her blog. She currently targets audiences originating from various countries.In the past, she ran ads to advertise a related course on the same blog and collected data in the process.She would now like to employ your services as a Data Science Consultant to create a solution that would allow her to determine whether ads targeted to audiences of certain characteristics i.e. city, male country, ad topic, etc. would click on her ads.
+
+
+### **Experimental Design**
+Installing packages and loading libraries 
+
+Loading the data
+
+Exploratory Data Analysis
+
+Data Cleaning
+
+Univariate,Bivariate,Multivariate analysis
+
+Conclusion
+
+
+### **Appropriateness of the Data**
+The columns in the data set include:
+
+Daily Time Spent on Site
+
+Age
+
+Area Income
+
+Daily Internet Usage
+
+Ad Topic Line
+
+City
+
+Male
+
+Country
+
+Timestamp
+
+Clicked on Ad
+
+The data set has 1000 observations and 10 variables.
+
+### **Loading our Data**
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Loading the dataset
+advert = read.csv("http://bit.ly/IPAdvertisingData",stringsAsFactors=FALSE)
+```
+## **Exploratory Data Analysis**
+
+### **Checking the data***
+```{r}
+# Checking the top of our dataset
+head(advert)
+```
+```{r}
+# Checking the bottom of our dataset
+tail(advert)
+```
+```{r}
+# checking the structure of our dataset
+# checking the data types of our variables 
+str(advert)
+```
+```{r}
+# Checking the number of rows and columns
+dim(advert)
+```
+Our dataset has 1000 observations(rows) and 10 variables(columns)
+
+### **Data cleaning**
+
+```{r}
+# checking for the sum of missing values in each column
+colSums(is.na(advert))
+```
+There are no missing values within our dataset.
+```{r}
+# checking for duplicates
+duplicated_rows <- colSums(advert[duplicated(advert),])
+duplicated_rows
+```
+There are no duplicates in our dataset.
+```{r}
+# checking our column names
+names(advert)
+```
+
+```{r}
+# lower case of the column names
+names(advert) <- tolower(names(advert))
+names(advert)
+```
+```{r}
+# checking dataframe to see if column names case has been lowered
+head(advert)
+```
+```{r}
+# checking for outliers
+# detect outliers by use ofsome descriptive statistics, 
+# and in particular with the minimum and maximum.
+summary(advert)
+```
+There appear to be no outliers based on the summary statistics. However, we will continue to investigate in order to evaluate and confirm.
+```{r}
+# Using a boxplot to check for observations far away from other data points.
+# We will Use all three double type columns: specifying each
+
+
+Daily_Time_Spent_on_Site <- advert$ daily.time.spent.on.site 
+Age <- advert$age
+Daily_Internet_Usage <- advert$daily.internet.usage
+Area_Income <- advert$area.income
+ 
+
+boxplot(Daily_Time_Spent_on_Site,Age, Daily_Internet_Usage,
+main = "Multiple boxplots to check for outliers",
+at = c(1,2,3),
+names = c("Time", "Age","It_Use"),
+las = 2,
+col = c("orange","red","blue"),
+border = "brown",
+horizontal = TRUE,
+notch = TRUE
+)
+
+# We will remove the area income and plot it on a different code so as to see the other plots more clearly.
+```
+
+The Daily_Time_Spent_on_Site,Age, Daily_Internet_Usage varaibles do not seem to have any outliers.
+
+```{r}
+# plotting area income
+boxplot(Area_Income,
+main = "Area income boxplot",
+at = c(1),
+names = c("Income"),
+las = 2,
+col = c("yellow"),
+border = "brown",
+horizontal = TRUE,
+notch = TRUE
+)
+```
+
+Area Income has outliers on the first quartile as shown above.
+
+```{r}
+#Let us check out the outliers in the Area Income column
+
+boxplot.stats(advert$area.income)$out
+```
+We've come to the conclusion that the outliers appear to be within our maximum and minimum entries and appear to be viable, thus they'll be kept.
+
+### **Univariate analysis***
+#### **Measures of Central Tendency**
+
+```{r}
+# Calculating mean of our variables
+# Lets check the numerical columns of our dataset
+sapply(advert, class)
+```
+```{r}
+# our numerical columns are: 
+  # 1. daily.time.spent.on.site
+  # 2. area.income
+  # 3. daily.internet.usage
+  # 4. age
+  # 5. male
+  # 6. clicked.on.ad
+
+# because the male and clicked.on.ad columns are encoded, we'll check for the mean,mode and median of the first four.
+```
+
+```{r}
+# checking the mean
+
+dailytime.mean = mean(advert$daily.time.spent.on.site)
+age.mean = mean(advert$age)
+areaincome.mean = mean(advert$area.income)
+dailyinternet.mean = mean(advert$daily.internet.usage)
+
+print("The mean of the Daily Time Spent on the site:",quote=FALSE)
+dailytime.mean
+print("The mean of the Age:",quote=FALSE)
+age.mean
+print("The mean of the Area Income:",quote=FALSE)
+areaincome.mean
+print("The mean of the Daily Internet Usage:",quote=FALSE)
+dailyinternet.mean
+```
+```{r}
+# checking median
+
+dailytime.median = median(advert$daily.time.spent.on.site)
+age.median = median(advert$age)
+areaincome.median = median(advert$area.income)
+dailyinternet.median = median(advert$daily.internet.usage)
+
+print("The median of the Daily Time Spent on the site:",quote=FALSE)
+dailytime.median
+print("The median of the Age:",quote=FALSE)
+age.median
+print("The median of the Area Income:",quote=FALSE)
+areaincome.median
+print("The median of the Daily Internet Usage:",quote=FALSE)
+dailyinternet.median
+```
+```{r}
+# checking the mode
+
+#Set the function to get the mode
+
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+dailytime.mode = getmode(advert$daily.time.spent.on.site)
+age.mode = getmode(advert$age)
+areaincome.mode = getmode(advert$area.income)
+dailyinternet.mode = getmode(advert$daily.internet.usage)
+
+print("The mode of the Daily Time Spent on the Site:",quote=FALSE)
+dailytime.mode
+print("The mode of the Age:",quote=FALSE)
+age.mode
+print("The mode of the Area Income:",quote=FALSE)
+areaincome.mode
+print("The mode of the Daily Internet Usage:",quote=FALSE)
+dailyinternet.mode
+```
+#### **Measures of dispersion**
+```{r}
+# Finding the minimum values of our columns
+dailytime.min = min(advert$daily.time.spent.on.site)
+age.min = min(advert$age)
+areaincome.min = min(advert$area.income)
+dailyinternet.min = min(advert$daily.internet.usage)
+
+print("The minimum value of the Daily Time Spent on the site:",quote=FALSE)
+dailytime.min
+print("The minimum value of the Age:",quote=FALSE)
+age.min
+print("The minimum value of the Area Income:",quote=FALSE)
+areaincome.min
+print("The minimum value of the Daily Internet Usage:",quote=FALSE)
+dailyinternet.min
+```
+```{r}
+# Finding the maximum values of our columns
+dailytime.max = max(advert$daily.time.spent.on.site)
+age.max = max(advert$age)
+areaincome.max = max(advert$area.income)
+dailyinternet.max = max(advert$daily.internet.usage)
+
+print("The maximum value of the Daily Time Spent on the site:",quote=FALSE)
+dailytime.max
+print("The maximum value of the Age:",quote=FALSE)
+age.max
+print("The maximum value of the Area Income:",quote=FALSE)
+areaincome.max
+print("The maximum value of the Daily Internet Usage:",quote=FALSE)
+dailyinternet.max
+```
+```{r}
+# Finding the range of values of our columns
+dailytime.range = range(advert$daily.time.spent.on.site)
+age.range = range(advert$age)
+areaincome.range = range(advert$area.income)
+dailyinternet.range = range(advert$daily.internet.usage)
+
+print("The range value of the Daily Time Spent on the site:",quote=FALSE)
+dailytime.range
+print("The range value of the Age:",quote=FALSE)
+age.range
+print("The range value of the Area Income:",quote=FALSE)
+areaincome.range
+print("The range value of the Daily Internet Usage:",quote=FALSE)
+dailyinternet.range
+```
+```{r}
+#Find the quantile in the numerical columns in the dataset
+
+dailytime.quantile = quantile(advert$daily.time.spent.on.site)
+age.quantile = quantile(advert$age)
+areaincome.quantile = quantile(advert$area.income)
+dailyinternet.quantile = quantile(advert$daily.internet.usage)
+
+print("The quantiles of the Daily Time Spent on the site:",quote=FALSE)
+dailytime.quantile
+print("The quantiles of the Age:",quote=FALSE)
+age.quantile
+print("The quantiles of the Area Income:",quote=FALSE)
+areaincome.quantile
+print("The quantiles of the Daily Internet Usage:",quote=FALSE)
+dailyinternet.quantile
+```
+```{r}
+#Find the variance in ouer columns in the dataset
+
+dailytime.variance = var(advert$daily.time.spent.on.site)
+age.variance = var(advert$age)
+areaincome.variance = var(advert$area.income)
+dailyinternet.variance = var(advert$daily.internet.usage)
+
+print("The variance of the Daily Time Spent on the Site:",quote=FALSE)
+dailytime.variance
+print("The variance of the Age:",quote=FALSE)
+age.variance
+print("The variance of the Area Income:",quote=FALSE)
+areaincome.variance
+print("The variance of the Daily Internet Usage:",quote=FALSE)
+dailyinternet.variance
+```
+```{r}
+#Find the standard deviation in our columns in the dataset
+
+dailytime.std = sd(advert$daily.time.spent.on.site)
+age.std = sd(advert$age)
+areaincome.std = sd(advert$area.income)
+dailyinternet.std = sd(advert$daily.internet.usage)
+
+print("The standard deviation of the Daily Time Usage:",quote=FALSE) 
+dailytime.std
+print("The standard deviation of the Age:",quote=FALSE)
+age.std
+print("The standard deviation of the Area Income:",quote=FALSE)
+areaincome.std
+print("The standard deviation of the Daily Internet Usage:",quote=FALSE)
+dailyinternet.std
+```
+```{r}
+# Creating a histogram for daily time spent
+hist(advert$daily.time.spent.on.site)
+```
+
+Most of the users spend 75 minutes on the site.
+
+```{r}
+# Creating a histogram for age
+hist(advert$age,)
+```
+
+Majority of the users are between the age 25 to 35.
+
+
+```{r}
+# Creating a histogram for area income
+hist(advert$area.income)
+```
+
+Majority of the users have an income of 60000
+
+```{r}
+# Creating a histogram for male column
+# male = 1 female = 0
+hist(advert$male)
+```
+
+Majority of the users were female but the male ratio was still considerably high.
+
+```{r}
+# Creating a histogram for clicked on ad
+# clicked = 1 no click = 0
+hist(advert$clicked.on.ad)
+```
+
+There was an equal ratio of those who clicked and those who did not click on an ad.
+
+#### **Bivariate Analysis**
+#Covariance of age and click on ad
+```{r}
+# Covariance of age and click on ad
+cov(advert$age, advert$clicked.on.ad)
+```
+The covariance is positive hence there is a positive relation between age and clicking on an ad.
+```{r}
+# Covariance of Daily.Time.Spent.on.Site and click on ad
+cov(advert$daily.time.spent.on.site, advert$clicked.on.ad)
+```
+There is a negative covariance implying a negative relation to user clicking on an ad.
+```{r}
+# Covariance of area income and click on ad
+cov(advert$area.income, advert$clicked.on.ad)
+```
+There is a negative covariance between income and a user clicking on an ad.
+```{r}
+# plotting scatter plots between age and time spent
+plot(advert$daily.time.spent.on.site, advert$age, xlab="time spent", ylab="age")
+```
+
+Majority of those who are young spent more time on the site.
+
+```{r}
+# scatter plot of age and area income
+plot(advert$area.income, advert$age, xlab="income", ylab="age")
+```
+
+```{r}
+# Creating a Stacked bar chart 
+counts <- table(advert$clicked.on.ad, advert$age)
+barplot(counts,
+  main="Bar chart showing Clicked on Ad by Age",
+  xlab="Age",
+  ylab = "Frequency",
+  col=c("yellow","red"),
+  legend = rownames(counts))
+```
+- The stacked bar chart shows the distribution of the number of people who clicked on an Ad by age.
+- The highest age of the participants was 61 and lowest was 19.
+- The people who clicked most on Ads were between age 28 to 43.
+```{r}
+# Stacked bar chart
+counts <- table(advert$clicked.on.ad, advert$male)
+barplot(counts,
+  main="A stacked bar chart showing Clicked on Ad by Gender",
+  xlab="Gender",
+  ylab = "Frequency",
+  col=c("cyan","yellow"),
+  legend = rownames(counts))
+```
+- More females clicked on Ad compared to males
+- There are more female users compares to male users
+
+
+
+```{r}
+# create a correlation heat map
+# Heat map
+
+#numeric_tbl <- advert %>%
+  #select_if(is.numeric) %>%
+  #select(daily.time.spent.on.site, age, area.income,daily.internet.usage)
+
+# Calculate the correlations
+#corr <- cor(numeric_tbl, use = "complete.obs")
+
+#ggcorrplot(round(corr, 2), 
+           #type = "full", lab = T)
+```
+- There is a moderate relationship between daily time spent on the site and and daily internet usage.
+- The other variables have weak relationships.
+
+#### Conclusion
+```{r}
+# Data Cleaning 
+# There were no duplicates nor missing values in our dataset
+# Area Income has outliers on the first quartile as shown above.
+
+# Measures of central tendency
+#The mode of the Daily Time Spent on the Site: 62.26
+#The mode of the Age: 31
+#The mode of the Area Income:61833.9
+#The mode of the Daily Internet Usage: 167.22
+
+#The median of the Daily Time Spent on the site:68.215
+#The median of the Age:35
+#The median of the Area Income:57012.3
+#The median of the Daily Internet Usage:183.13
+
+#The mean of the Daily Time Spent on the site:65.0002
+#The mean of the Age:36.009
+#The mean of the Area Income:55000.00008
+#The mean of the Daily Internet Usage:180.0001
+
+# Measures of dispersion
+#The minimum value of the Daily Time Spent on the site:32.6
+#The minimum value of the Age:19
+#The minimum value of the Area Income:13996.5
+#The minimum value of the Daily Internet Usage:104.78
+
+#The maximum value of the Daily Time Spent on the site:91.43
+#The maximum value of the Age:61
+#The maximum value of the Area Income:79484.8
+#The maximum value of the Daily Internet Usage:269.96
+
+#The range value of the Daily Time Spent on the site:32.6 91.43
+#The range value of the Age:19 61
+#The range value of the Area Income:13996.5 79484.8
+#The range value of the Daily Internet Usage:104.78 269.96
+
+#The variance of the Daily Time Spent on the Site:251.337094854855
+#The variance of the Age:77.1861051051051
+#The variance of the Area Income:179952405.951775
+#The variance of the Daily Internet Usage:1927.41539618619
+
+#The standard deviation of the Daily Time Usage:15.8536145675002
+#The standard deviation of the Age:8.78556231012592
+#The standard deviation of the Area Income:13414.6340222824
+#The standard deviation of the Daily Internet Usage:43.9023393019801
+```
+
+- Majority of the users have an income of 60000
+- Majority of the users were female but the male ratio was still considerably high.
+- There was an equal ratio of those who clicked and those who did not click on an ad.
+- The covariance is positive hence there is a positive relation between age and clicking on an ad.
+- There is a negative covariance between daily time spent implying a negative relation to user clicking on an ad.
+- There is a negative covariance between income and a user clicking on an ad.
+- Majority of those who are young spent more time on the site.
+- The highest age of the participants was 61 and lowest was 19.
+- The people who clicked most on Ads were between age 28 to 43.
+- More females clicked on Ad compared to males.
+- There are more female users compares to male users.
